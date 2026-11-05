@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="font-src 'none'; connect-src 'none'; img-src data:; object-src 'none'; base-uri 'none'"><title>NOVA · Habits</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,460;9..144,560&family=Outfit:wght@340;460;560&family=Caveat:wght@500;700&display=swap">
+<style>/* NOVA_KIT_CSS */
+body{margin:0}.nova-artifact{overflow-wrap:anywhere}.nova-artifact .nova-habit-split{grid-template-columns:minmax(0,1fr)}.nova-artifact button,.nova-artifact input,.nova-artifact select{min-width:44px;min-height:44px}.nova-artifact button,.nova-artifact input,.nova-artifact select,.nova-artifact textarea{max-width:100%}.nova-artifact button:disabled{cursor:default;opacity:.6}.nova-artifact .nova-list{overflow:visible}.nova-artifact .nova-list-head{font-size:10px;letter-spacing:.04em}.nova-artifact .nova-list-row{border-radius:6px}.nova-artifact .nova-streak{font-size:12px;overflow-wrap:normal;word-break:normal}.nova-artifact .nova-list-head,.nova-artifact .nova-list-row{grid-template-columns:minmax(0,1.4fr) minmax(64px,.7fr) minmax(64px,.8fr) 60px}.nova-artifact .nova-status{flex-shrink:1}.nova-artifact .nova-status[data-state="missed"]{background:var(--nova-alert-tint);color:var(--nova-alert-ink)}.nova-artifact .nova-day[data-state="pause"]{background:var(--nova-info-tint);color:var(--nova-info-deep);border:1px solid var(--nova-info)}.nova-artifact .nova-day[data-state="ahead"]{border:0;background:transparent}.nova-artifact .nova-day{min-width:44px}.nova-artifact .nova-check{max-width:none}.nova-artifact .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.nova-artifact .controls button,.nova-artifact form button{padding:8px 16px;border:1px solid var(--nova-line-strong);border-radius:12px;background:var(--nova-surface);color:var(--nova-ink)}.nova-artifact .inset{margin-top:22px;padding-top:18px;border-top:1px solid var(--nova-line)}.nova-artifact label{display:flex;flex-direction:column;gap:4px;font-size:14px}.nova-artifact input,.nova-artifact select{width:100%;padding:8px;border:1px solid var(--nova-line-strong);border-radius:8px;background:var(--nova-surface);color:var(--nova-ink)}.nova-artifact .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.nova-artifact .wide{grid-column:1/-1}.nova-artifact .message{margin:8px 0;white-space:pre-line}.nova-artifact .message:empty{display:none}.nova-artifact .evidence{padding:10px 12px;border-bottom:1px solid var(--nova-line);font-size:12px}.nova-artifact .evidence p{margin:4px 0}.nova-artifact dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:6px 12px;font-size:14px}.nova-artifact dt{color:var(--nova-muted)}.nova-artifact dd{margin:0}.nova-artifact .history-item{padding:12px 0;border-bottom:1px solid var(--nova-line)}.nova-artifact .history-item p{margin:4px 0;font-size:14px}.nova-artifact .store-label{font-size:12px;color:var(--nova-muted)}.nova-artifact .step{border-top:1px solid var(--nova-line);padding:12px 0}.nova-artifact .step p{margin:4px 0}.nova-artifact .step small{display:block;color:var(--nova-muted)}.nova-artifact #load-message{padding:8px 0}.nova-artifact [data-stale="true"] #data-region{border:2px dashed var(--nova-alert);border-radius:22px}.nova-artifact .nova-record h2{font-size:22px}
+@media(min-width:1101px){.nova-artifact .nova-habit-split{grid-template-columns:minmax(270px,1fr) minmax(332px,1.15fr)}}
+@media(max-width:520px){.nova-artifact .nova-list-head,.nova-artifact .nova-list-row{grid-template-columns:minmax(0,1.4fr) minmax(64px,.7fr) minmax(64px,.8fr) 60px}.nova-artifact .fields{grid-template-columns:minmax(0,1fr)}.nova-artifact .nova-month,.nova-artifact .nova-dow{gap:4px}.nova-artifact .nova-dayhead h1{font-size:38px}.nova-artifact .nova-status{max-width:100%}}
+</style></head><body><main id="app" class="nova-artifact"><div class="nova-shell">
+<div class="controls"><button type="button" id="check-host">Check host</button><button type="button" id="refresh">Refresh habits</button><span id="store-label" class="store-label">Store not checked</span></div>
+<p id="check-result" class="nova-check-result" role="status"></p><p id="load-message" class="message" role="status">Loading habits…</p>
+<div class="nova-layout" id="data-region">
+<section class="nova-day-card">
+<header class="nova-dayhead"><div><p class="nova-eyebrow">Habits · the standard you set</p><h1>What you <span>practice</span></h1><p class="nova-lede">Each habit has a definition of what counts, a frequency you chose, and a history that does not flatter you. A miss stays a miss.</p></div><div class="nova-status" id="today-status" role="status">No report yet</div></header>
+<div class="nova-habit-split">
+<section aria-label="Habits" class="nova-list"><div class="nova-list-head" aria-hidden="true"><span>Name</span><span>Type</span><span>Frequency</span><span>Streak</span></div><div id="habit-list">Loading…</div></section>
+<section class="nova-calwrap" aria-label="Habit month"><div class="nova-calhead"><h2 id="calendar-habit">Choose a habit</h2><div class="nova-monthnav"><button id="month-prev" type="button" aria-label="Previous month">‹</button><span id="month-label"></span><button id="month-next" type="button" aria-label="Next month">›</button></div></div>
+<div class="nova-dow" aria-hidden="true"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div id="month-grid" class="nova-month" role="group" aria-label="Monthly habit reports"></div>
+<div class="nova-key"><span><i data-state="kept"></i>Kept</span><span><i data-state="partial"></i>Partial</span><span><i data-state="missed"></i>Missed</span><span><i data-state="unknown"></i>No report / unknown</span><span>Ⅱ Pause</span><span>Ahead</span><span>Not due: only if established</span></div>
+<p class="nova-coverage" id="month-coverage"></p><div id="weekly-coverage" class="nova-coverage"></div>
+<section class="inset" aria-label="Log a habit"><h3>Record what happened</h3><p id="log-habit" class="nova-coverage">Choose a habit first.</p>
+<div class="fields"><label>Report date<input id="log-date" type="date" required></label><label>Your words (optional)<input id="said" maxlength="2000" placeholder="Logged from the Habits page"></label><label class="wide">Reason if not done (optional)<input id="reason" maxlength="500"></label></div>
+<div class="controls" id="log-actions"><button type="button" data-log="done">Done</button><button type="button" data-log="partial">Partial</button><button type="button" data-log="not_done">Not done</button></div>
+<p id="log-message" class="message" role="status"></p><div class="controls"><button type="button" id="log-retry" hidden>Retry same report</button><button type="button" id="log-new" hidden>Start a new report</button></div>
+</section></section></div>
+<section class="inset" aria-label="Definition"><h2>What counts</h2><div id="definition" class="nova-coverage">No habit selected.</div><h3>Definition history</h3><div id="history" class="nova-coverage">No habit selected.</div></section>
+</section>
+<aside class="nova-side"><section class="nova-side-card nova-voice"><p class="nova-voice-label">Second Voice</p><p>No analysis yet</p><p class="nova-voice-note">No stored analysis tool is available.</p></section>
+<section class="nova-side-card nova-record"><h2>This morning, as it happened</h2><p id="routine-date" class="nova-coverage"></p><div id="steps" class="nova-coverage">Choose a habit to see linked routines.</div></section></aside>
+</div>
+<section class="nova-check" aria-label="Add a habit"><h2>Add a habit</h2><form id="add-form"><div class="fields">
+<label>Name<input name="name" required maxlength="256"></label><label>Purpose<input name="purpose" required maxlength="1000"></label>
+<label>Direction<select name="direction"><option value="establish">Establish</option><option value="strengthen">Strengthen</option><option value="reduce">Reduce</option><option value="replace">Replace</option></select></label>
+<label>Standard<input name="standard" required maxlength="1000"></label>
+<label>Measure kind<select name="measure_kind" id="measure-kind"><option value="occurrence">Occurrence</option><option value="duration">Duration</option><option value="quantity">Quantity</option></select></label>
+<label>Unit (required for quantity)<input name="unit" id="unit" maxlength="80" placeholder="e.g. pages"></label>
+<label>Frequency count<input name="frequency_count" type="number" min="1" step="1" value="1" required></label>
+<label>Frequency period<select name="frequency_period"><option value="day">Day</option><option value="week">Week</option><option value="month">Month</option></select></label>
+<label>Start date<input name="start" id="start-date" type="date" required></label></div>
+<button type="submit" id="add-submit">Add habit</button></form>
+<p id="add-message" class="message" role="status"></p><div class="controls"><button type="button" id="add-retry" hidden>Retry same habit</button><button type="button" id="add-new" hidden>Start a new habit entry</button></div></section>
+</div></main><script>/* NOVA_KIT_JS */
+/* NOVA_HOST_BOOT */
+(function () {
+  'use strict';
+  // HOST ADAPTER: the offline harness supplies window.host.callTool({name, arguments}).
+  // A real Claude artifact may expose a different API and connector-qualified names.
+  // Adapt ONLY this function to the verified live bridge. Never add fetch, tokens,
+  // owner/store selectors or direct Worker URLs. Return a decoded NOVA JSON reply.
+  async function callTool(name, args) {
+    if (!window.host || typeof window.host.callTool !== 'function') throw {code:'host_denied'};
+    let timer;
+    try {
+      const result = await Promise.race([
+        window.host.callTool({name:name, arguments:args}),
+        new Promise(function (_, reject) { timer = setTimeout(function () { reject({code:'network_error'}); }, 20000); })
+      ]);
+      const reply = result.structuredContent || (result.content && JSON.parse(result.content.find(function (c) { return c.type === 'text'; }).text));
+      if (!reply || typeof reply.ok !== 'boolean') throw {code:'bridge_reply'};
+      if (!reply.ok) throw {code:reply.code, field:reply.field};
+      return reply;
+    } catch (error) { throw error && error.code ? error : {code:'network_error'}; }
+    finally { clearTimeout(timer); }
+  }
+  const kit=window.NovaKit, $=function(id){return document.getElementById(id);}, app=$('app');
+  const state={today:null, month:null, date:null, habits:[], selected:null, cache:new Map(), detail:null, version:0, loading:false, checking:false, ready:false};
+  const intents={log:null,add:null}, busy={log:false,add:false}, cooldown={log:0,add:0};
+  const hints={date:'Report date',habit:'Habit',said:'Your words',status:'Status',reason_code:'Reason',reason_text:'Reason',frequency_count:'Frequency count',frequency_period:'Frequency period',contract_version:'Contract version'};
+  function safe(error) {
+    const code=error && error.code;
+    if(code==='invalid_params') return 'A field is invalid. Check '+(hints[error.field]||'the form fields')+'.';
+    if(code==='host_denied'||code==='denied') return 'Host access was denied. Allow the NOVA connector and check host again.';
+    if(code==='network_error') return 'No receipt arrived. Saving is unconfirmed. Retry the same entry.';
+    if(code==='bridge_reply') return 'The host reply was not recognized. Check the tool bridge.';
+    if(code==='storage_unavailable') return 'Write storage is unavailable. Saving is unconfirmed.';
+    if(code==='unknown_view') return 'This view is unavailable. Refresh the NOVA connector.';
+    if(code==='too_large') return 'The response is too large. Choose a narrower range.';
+    return kit.safeMessage(code);
+  }
+  function text(id,value){$(id).textContent=value;}
+  function node(tag,value,cls){const n=document.createElement(tag);if(value!==undefined)n.textContent=value;if(cls)n.className=cls;return n;}
+  function value(x){return x===null||x===undefined?'Unknown':String(x);}
+  function shortDate(value){if(value==null||value==='')return null;const date=new Date(value+'T12:00:00Z');return Number.isNaN(date.getTime())?null:new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',month:'short',day:'numeric'}).format(date);}
+  function shortDateTime(value){if(value==null||value==='')return null;const date=new Date(value);return Number.isNaN(date.getTime())?null:new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(date);}
+  function coverageSentence(known,unknown,expected,from,to){const parts=[];if(known!=null)parts.push(known+' report'+(known===1?'':'s')+' known');if(unknown!=null)parts.push(unknown+' unknown');if(expected!=null)parts.push(expected+' expected');const range=from!=null&&to!=null?shortDate(from)+' to '+shortDate(to):null;return (parts.length?parts.join(', '):'Coverage not provided')+(range?' · '+range:'');}
+  window.novaHabitsCoverageSentence=coverageSentence;
+  function coverage(r){return coverageSentence(r.cov_known,r.cov_unknown,r.cov_expected,r.cov_from,r.cov_to);}
+  function frequency(h){return h.frequency_count==null||h.frequency_period==null?'Unknown':h.frequency_count+' / '+h.frequency_period;}
+  function validDate(s){return /^\d{4}-\d{2}-\d{2}$/.test(s||'')&&!Number.isNaN(Date.parse(s+'T12:00:00Z'))&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;}
+  function range(){const d=new Date(state.month+'-01T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+1);d.setUTCDate(0);return {from_date:state.month+'-01',to_date:d.toISOString().slice(0,10)>state.today?state.today:d.toISOString().slice(0,10)};}
+  async function read(view,params) {
+    const reply=await callTool('nova.read',{contract_version:'read-1',view:view,params:Object.assign({limit:100},params)});
+    if(reply.truncated) throw {code:'too_large'};
+    return reply.rows||[];
+  }
+  function stale(error){app.dataset.stale='true';text('load-message','Last good data is stale. '+safe(error));}
+  function latest(rows){return rows.filter(function(r){return r.evidence_kind==='performance';}).sort(function(a,b){return a.report_date.localeCompare(b.report_date);}).at(-1);}
+  function streak(h,rows) {
+    const last=latest(rows||[]);
+    if(!last||(h.last_report_date!=null&&last.report_date!==h.last_report_date)||last.current_streak==null||last.cov_unknown!==0||last.streak_uncertain_at_row!==0||last.reported_status==='unknown')return 'Streak: unknown';
+    return 'Streak '+last.current_streak+' · last report '+(shortDate(last.report_date)||'not provided')+' ('+last.reported_status+')';
+  }
+  function renderList(){
+    const list=$('habit-list');list.replaceChildren();
+    if(!state.habits.length){list.append(node('p','No adopted or paused habits yet. Add your first habit below.','nova-empty'));return;}
+    state.habits.forEach(function(h){
+      const button=node('button',undefined,'nova-list-row');button.type='button';button.dataset.habit=h.habit_id;button.setAttribute('aria-pressed',String(h.habit_id===state.selected));button.setAttribute('aria-selected',String(h.habit_id===state.selected));
+      const title=node('span');title.append(node('b',h.name),node('small',h.status+' · effective '+(shortDate(h.effective_from)||'not provided')));
+      button.append(title,node('small',value(h.measure_kind)),node('span',frequency(h),'nova-frequency'),node('span',streak(h,state.cache.get(h.habit_id)),'nova-streak'));
+      button.addEventListener('click',function(){select(h.habit_id);});list.append(button);
+      const info=node('div',undefined,'evidence'),last=latest(state.cache.get(h.habit_id)||[]);
+      info.append(node('p',streak(h,state.cache.get(h.habit_id))+' · '+(last?coverage(last):'Coverage not provided')));
+      const details=node('details'),disclosure=node('summary','Details');disclosure.style.display='flex';disclosure.style.alignItems='center';disclosure.style.minHeight='44px';details.append(disclosure);
+      details.append(node('p',last?'Coverage details: '+coverage(last)+(last.basis?' · '+last.basis:''):'No performance in the displayed range.'));
+      (state.cache.get(h.habit_id)||[]).filter(function(r){return r.evidence_kind==='pause_period';}).forEach(function(r){details.append(node('p','Declared pause '+r.pause_start_date+'–'+r.pause_end_date+' · preserves the streak without extending it. '+coverage(r)+(r.basis?' · '+r.basis:'')));});
+      info.append(details);
+      list.append(info);
+    });
+  }
+  function controls(){
+    const h=state.habits.find(function(h){return h.habit_id===state.selected;});
+    const blocked=state.loading||state.checking||busy.log||busy.add;
+    $('refresh').disabled=blocked;$('check-host').disabled=blocked;
+    ['month-prev','month-next'].forEach(function(id){$(id).disabled=blocked||!!intents.log;});
+    document.querySelectorAll('[data-habit],#month-grid button').forEach(function(b){b.disabled=blocked||!!intents.log;});
+    const allowed=state.ready&&!state.loading&&h&&h.status==='adopted'&&validDate(state.date)&&state.date<=state.today;
+    document.querySelectorAll('[data-log]').forEach(function(b){b.disabled=!allowed||!!intents.log||busy.log||busy.add||state.checking;});
+    ['log-date','said','reason'].forEach(function(id){$(id).disabled=blocked||!!intents.log;});
+    Array.from($('add-form').elements).forEach(function(e){e.disabled=!state.ready||blocked||!!intents.add;});
+    ['log','add'].forEach(function(k){$(k+'-retry').disabled=busy[k];$(k+'-new').disabled=busy[k];});
+    text('log-habit',h?h.name+' · '+state.date+(h.status==='paused'?' · Paused; resume by asking Claude before logging.':state.date>state.today?' · Future date; logging unavailable.':''):'Choose a habit first.');
+  }
+  function drawCalendar(){
+    text('month-label',new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(state.month+'-01T12:00:00Z')));
+    const rows=state.detail?state.detail.days:[],grid=$('month-grid');
+    kit.renderMonth(grid,state.month,[],state.date,state.today);
+    const map=new Map(rows.map(function(r){return [r.local_date,r];}));
+    grid.querySelectorAll('button').forEach(function(button){
+      const date=state.month+'-'+button.textContent.padStart(2,'0'),r=map.get(date),future=date>state.today;
+      const status=future?'ahead':!r?'unknown':r.outcome==='paused'?'pause':r.reported_status==='unknown'?'unknown':r.reported_status==='done'?'kept':r.reported_status==='partial'?'partial':r.reported_status==='not_done'?'missed':r.expected===0?'not-due':'unknown';
+      const label=future?'Ahead':r&&r.reported_status==='unknown'?'Unknown (explicit report)':({kept:'Kept',partial:'Partial',missed:'Missed',pause:'Declared pause; preserves without extending',unknown:'No report','not-due':'Not due'})[status];
+      button.dataset.date=date;button.dataset.state=status;button.setAttribute('aria-label',date+' · '+label);button.title=label;button.setAttribute('aria-pressed',String(date===state.date));
+      button.addEventListener('click',function(){if(state.loading||state.checking||intents.log||busy.log||busy.add)return;state.date=date;$('log-date').value=date;drawCalendar();controls();loadStepsOnly();});
+    });
+  }
+  function renderDetail(){
+    const d=state.detail,h=state.habits.find(function(h){return h.habit_id===state.selected;});
+    text('calendar-habit',h?h.name:'Choose a habit');drawCalendar();controls();
+    if(!d||!h){text('definition','No habit selected.');text('history','No habit selected.');text('steps','No adopted routine is linked to this habit.');text('month-coverage','');$('weekly-coverage').replaceChildren();return;}
+    const today=d.days.find(function(r){return r.local_date===state.today;});
+    const status=today&&today.outcome==='paused'?'Declared pause':h.last_report_date!==state.today?'No report yet':({done:'reported done today',partial:'reported partial today',not_done:'missed today',unknown:'unknown today'})[h.last_report_status]||'No report yet';
+    text('today-status',h.name+' · '+status);$('today-status').dataset.state=status==='missed today'?'missed':'info';
+    const r=range();text('month-coverage',r.from_date>r.to_date?'Ahead · no future ranges requested.':'HAB-07 · '+shortDate(r.from_date)+' to '+shortDate(r.to_date)+' · Coverage shown for report slots, not a completion estimate. '+(today?coverage(today):'No date-slot coverage available.'));
+    $('weekly-coverage').replaceChildren();
+    d.weeks.forEach(function(w){$('weekly-coverage').append(node('p','Week of '+shortDate(w.week_start)+' · Done '+value(w.done_count)+' / Partial '+value(w.partial_count)+' / Not done '+value(w.not_done_count)+' · target '+value(w.target_count)+' · '+coverage(w)));});
+    const def=$('definition');def.replaceChildren();
+    if(d.definition[0]){
+      const row=d.definition[0],dl=node('dl');
+      [['Purpose',row.purpose],['Direction',row.direction],['Standard',row.standard],['Measure',row.measure_kind],['Frequency',frequency(row)],['Status',row.status],['Effective',shortDate(row.effective_attribution_date)||'Not available']].forEach(function(pair){dl.append(node('dt',pair[0]),node('dd',value(pair[1])));});
+      def.append(dl,node('p','Coverage not provided for this definition view. '+coverage(row)));
+    }else def.append(node('p','Current definition unavailable.'));
+    $('history').replaceChildren();
+    if(!d.history.length)text('history','No definition history returned.');
+    d.history.forEach(function(row){
+      const item=node('article',undefined,'history-item');
+      item.append(node('strong',row.revision_kind==='correction'?'Correction · repair':row.revision_kind==='deliberate_revision'?'Deliberate revision':'Original definition'));
+      item.append(node('p','Effective '+(shortDate(row.effective_from)||'not provided')+' · recorded '+(shortDateTime(row.recorded_at)||'not provided')+' · '+value(row.revision_reason)));
+      const changes=['name','standard','frequency_count','frequency_period','status','target_value','comparison'].filter(function(key){return row[key]!=null;}).map(function(key){return key.replaceAll('_',' ')+': '+row[key];}).join(' · ');
+      item.append(node('p',changes||'No non-null changed fields returned; null may mean unchanged or cleared.'),node('p',coverage(row)));$('history').append(item);
+    });
+    drawSteps();
+  }
+  function drawSteps(){
+    $('steps').replaceChildren();text('routine-date',(shortDate(state.date)||'Date not available')+' · America/Chicago');
+    const routines=state.detail&&state.detail.routines||[];
+    if(!routines.length){text('steps','No adopted routine is linked to this habit.');return;}
+    if(state.date>state.today){text('steps','Ahead · no future routine reports requested.');return;}
+    routines.forEach(function(ro){
+      $('steps').append(node('h3',ro.name),node('p','Linked steps '+value(ro.step_count)+' · '+coverage(ro)));
+      const rows=state.detail.steps[ro.routine_id]||[];
+      if(!rows.length)$('steps').append(node('p','No steps returned.'));
+      rows.forEach(function(r){
+        const item=node('div',undefined,'step'),status=r.linked_reported_status==null?'Unreported':value(r.linked_reported_status);
+        item.append(node('strong',value(r.position)+'. '+value(r.description)),node('p',status+' · run '+value(r.reported_status)));
+        let time='Time not available';
+        if(r.event_time&&!Number.isNaN(Date.parse(r.event_time)))time=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'}).format(new Date(r.event_time))+' Chicago';
+        item.append(node('small',time+' · source '+value(r.source_kind)+' · offset '+value(r.offset_seconds)+' seconds · duration '+value(r.duration_seconds)+' seconds'),node('small',coverage(r)));$('steps').append(item);
+      });
+    });
+  }
+  async function details(id){
+    const p={habit_id:id},r=range(),future=r.from_date>r.to_date;
+    const d={days:future?[]:await read('HAB-07',Object.assign({},p,r)),weeks:future?[]:await read('HAB-01',Object.assign({},p,r)),definition:await read('HAB-06',Object.assign({},p,{as_of_date:state.today})),history:await read('HAB-10',p),routines:await read('HAB-09',p),steps:{}};
+    if(state.date<=state.today)for(const ro of d.routines)d.steps[ro.routine_id]=await read('HAB-08',{routine_id:ro.routine_id,local_date:state.date});
+    return d;
+  }
+  async function loadStepsOnly(){
+    if(!state.detail)return;const token=++state.version;state.loading=true;controls();
+    try{const steps={};if(state.date<=state.today)for(const ro of state.detail.routines)steps[ro.routine_id]=await read('HAB-08',{routine_id:ro.routine_id,local_date:state.date});if(token!==state.version)return;state.detail.steps=steps;drawSteps();}
+    catch(error){if(token===state.version)stale(error);}finally{if(token===state.version){state.loading=false;controls();}}
+  }
+  async function select(id){
+    if(state.loading||state.checking||intents.log||busy.log||busy.add)return;
+    const token=++state.version;state.loading=true;controls();text('load-message','Loading selected habit…');
+    try{const d=await details(id);if(token!==state.version)return;state.selected=id;state.detail=d;renderList();renderDetail();app.dataset.stale='false';text('load-message','');}
+    catch(error){stale(error);}finally{if(token===state.version){state.loading=false;controls();}}
+  }
+  async function refresh(){
+    if(!state.ready||state.loading)return;
+    const token=++state.version;state.loading=true;controls();text('load-message','Loading habits…');
+    try{
+      const habits=await read('HAB-00',{as_of_date:state.today}),cache=new Map(),r=range();
+      if(r.from_date<=r.to_date)for(const h of habits)cache.set(h.habit_id,await read('HAB-02',{habit_id:h.habit_id,...r}));
+      const id=habits.some(function(h){return h.habit_id===state.selected;})?state.selected:habits[0]?.habit_id;
+      const d=id?await details(id):null;if(token!==state.version)return;
+      state.habits=habits;state.cache=cache;state.selected=id;state.detail=d;renderList();renderDetail();app.dataset.stale='false';text('load-message','');
+    }catch(error){stale(error);}finally{if(token===state.version){state.loading=false;controls();}}
+  }
+  async function checkHost(){
+    const button=$('check-host');if(button.disabled)return false;state.checking=true;controls();
+    const began=performance.now();
+    try{
+      const reply=await callTool('host.check',{});
+      if(!validDate(reply.local_date))throw {code:'bridge_reply'};
+      state.today=reply.local_date;state.ready=true;
+      if(!state.month){state.month=state.today.slice(0,7);state.date=state.today;$('log-date').value=state.date;$('start-date').value=state.today;}
+      $('log-date').max=state.today;$('start-date').max=state.today;
+      text('store-label',reply.store_mode==='sandbox'||reply.store_mode==='real'?reply.store_mode:'Store mode unknown');
+      text('check-result','Read access available · server '+value(reply.server_time_utc)+' · Chicago '+reply.local_date+' · views '+value(reply.view_count)+' · contracts '+(reply.contract_versions||[]).join(', ')+' · server sample '+value(reply.query_ms)+' ms / '+value(reply.result_bytes)+' bytes · round-trip '+Math.round(performance.now()-began)+' ms');
+      return true;
+    }catch(error){text('check-result',safe(error));stale(error);return false;}
+    finally{state.checking=false;controls();}
+  }
+  function pending(kind,show){$(kind+'-retry').hidden=!show;$(kind+'-new').hidden=!show;}
+  async function send(kind){
+    if(busy[kind]||!intents[kind])return;
+    busy[kind]=true;controls();text(kind+'-message','Saving…');
+    const intent=intents[kind];
+    try{
+      const reply=await callTool(intent.name,intent.args);
+      const receipt='Saved · receipt '+value(reply.client_op_id)+' · operation '+value(reply.op_seq)+(reply.replayed?' · replayed':'');
+      text(kind+'-message',receipt);pending(kind,false);intents[kind]=null;cooldown[kind]=Date.now()+700;
+      if(kind==='add'){$('add-form').reset();$('start-date').value=state.today;$('unit').required=false;}
+      // A successful receipt is kept even if refreshing fails.
+      await refresh();
+    }catch(error){text(kind+'-message',safe(error));pending(kind,true);$(kind+'-retry').hidden=error.code==='digest_conflict';}
+    finally{busy[kind]=false;controls();}
+  }
+  function log(status){
+    if(intents.log||busy.log||state.loading||Date.now()<cooldown.log)return;
+    const h=state.habits.find(function(h){return h.habit_id===state.selected;});
+    if(!h||!state.ready||h.status!=='adopted')return;
+    if(!validDate(state.date)||state.date>state.today){text('log-message','Choose a valid report date through today in Chicago.');return;}
+    const args={client_op_id:crypto.randomUUID(),habit:h.name,status:status,said:$('said').value.trim()||'Logged from the Habits page',date:state.date};
+    if(status==='not_done'&&$('reason').value.trim()){args.reason_code='other';args.reason_text=$('reason').value.trim();}
+    intents.log={name:'habits.log',args:args};send('log');
+  }
+  $('add-form').addEventListener('submit',function(event){
+    event.preventDefault();if(!state.ready||intents.add||busy.add||Date.now()<cooldown.add)return;
+    const data=Object.fromEntries(new FormData(event.currentTarget)),date=data.start;
+    if(!validDate(date)||date>state.today){text('add-message','Choose a valid start date through today in Chicago.');return;}
+    const count=Number(data.frequency_count);
+    if(!Number.isSafeInteger(count)||count<1){text('add-message','Frequency count must be a positive whole number.');return;}
+    const fields={name:data.name.trim(),purpose:data.purpose.trim(),direction:data.direction,standard:data.standard.trim(),measure_kind:data.measure_kind,frequency_count:count,frequency_period:data.frequency_period,status:'adopted'};
+    if(!fields.name||!fields.purpose||!fields.standard){text('add-message','Name, purpose and standard are required.');return;}
+    if(data.measure_kind==='quantity'){if(!data.unit.trim()){text('add-message','A quantity habit needs a unit.');return;}fields.unit=data.unit.trim();}
+    const original=Object.entries(data).map(function(pair){return pair[0]+': '+pair[1];}).join('\n');
+    intents.add={name:'nova.write',args:{contract_version:'write-1',client_op_id:crypto.randomUUID(),sources:[{ref:'definition',medium:'text',original_text:original,parent_source:null}],writes:[{op:'create',table:'habits',fields:fields,cites:[{source:'definition',role:'report'}],envelope:{attribution_date:date,time_zone:'America/Chicago',attribution_basis:'user_selected'}}]}};
+    send('add');
+  });
+  $('measure-kind').addEventListener('change',function(){$('unit').required=this.value==='quantity';});
+  document.querySelectorAll('[data-log]').forEach(function(button){button.addEventListener('click',function(){log(button.dataset.log);});});
+  ['log','add'].forEach(function(kind){
+    $(kind+'-retry').addEventListener('click',function(){send(kind);});
+    $(kind+'-new').addEventListener('click',function(){if(busy[kind])return;intents[kind]=null;pending(kind,false);text(kind+'-message','New entry. Check the calendar first if a previous save was unconfirmed.');controls();});
+  });
+  $('log-date').addEventListener('change',async function(){
+    if(!validDate(this.value)||this.value>state.today){text('log-message','Choose a valid report date through today in Chicago.');this.value=state.date;return;}
+    const previous={date:state.date,month:state.month};
+    state.date=this.value;state.month=state.date.slice(0,7);controls();await refresh();
+    if(app.dataset.stale==='true'){state.date=previous.date;state.month=previous.month;this.value=state.date;drawCalendar();controls();}
+  });
+  async function month(delta){
+    if(!state.ready||state.loading||state.checking||intents.log||busy.log||busy.add)return;
+    const previous=state.month,d=new Date(state.month+'-01T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+delta);state.month=d.toISOString().slice(0,7);
+    await refresh();
+    if(app.dataset.stale==='true'){state.month=previous;drawCalendar();}
+  }
+  $('month-prev').addEventListener('click',function(){month(-1);});$('month-next').addEventListener('click',function(){month(1);});
+  $('refresh').addEventListener('click',async function(){if(!state.ready){await init();return;}await refresh();});
+  $('check-host').addEventListener('click',async function(){if(await checkHost())await refresh();});
+  const media=window.matchMedia('(prefers-color-scheme: dark)');
+  function theme(){const explicit=app.getAttribute('data-host-theme');kit.applyTheme(app,explicit||app.dataset.theme,media.matches);}
+  // Explicit host data-theme wins; without it CSS follows system preference.
+  if(!app.dataset.theme)app.removeAttribute('data-theme');else theme();
+  media.addEventListener('change',function(){if(app.dataset.hostTheme)kit.applyTheme(app,app.dataset.hostTheme,media.matches);});
+  async function init(){
+    controls();
+    if(!await checkHost())return;
+    try{
+      const described=await callTool('nova.describe',{room:'habits'});
+      const required=['HAB-00','HAB-01','HAB-02','HAB-06','HAB-07','HAB-08','HAB-09','HAB-10'];
+      if(required.some(function(id){return !(described.views||[]).some(function(v){return v.id===id;});}))throw {code:'unknown_view'};
+      await refresh();
+    }catch(error){state.ready=false;controls();stale(error);}
+  }
+  init();
+})();
+</script></body></html>

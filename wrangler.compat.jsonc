@@ -1,0 +1,59 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "nova-compat",
+  "account_id": "REDACTED",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-11-03",
+  "compatibility_flags": ["global_fetch_strictly_public"],
+
+  // Decision (Lucas, 2026-11-05): the workers.dev address stays on so deploys need no dashboard step. Every route is
+  // owner-only: /mcp needs an OAuth bearer from Cloudflare Access, and nothing else serves data. preview_urls stay off.
+  "workers_dev": true,
+  "preview_urls": false,
+  "limits": { "cpu_ms": 100 },
+  "logpush": false,
+  "observability": {
+    "enabled": false,
+    "redact_query_string": true,
+    "logs": { "enabled": false, "invocation_logs": false },
+    "traces": { "enabled": false }
+  },
+
+  "kv_namespaces": [
+    { "binding": "OAUTH_KV", "id": "REDACTED" }
+  ],
+  "durable_objects": { "bindings": [
+    { "name": "CONTROL", "class_name": "ControlDO" },
+    { "name": "LEDGER", "class_name": "LedgerDO" },
+    { "name": "ERASURE", "class_name": "ErasureDO" }
+  ] },
+  "r2_buckets": [
+    { "binding": "BACKUPS", "bucket_name": "nova-backups" },
+    { "binding": "ARTIFACTS", "bucket_name": "nova-artifacts" }
+  ],
+  // Creates fresh SQLite class namespaces together with the reviewed code.
+  // Application SQL migrations are separate and run inside each object.
+  // The spike (2026-11-04) added and then deleted SpikeImagesDO on this Worker. Cloudflare's
+  // recorded history is v1, spike-s1, spike-s1-remove; keep all three, in order, so deploys match.
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["ControlDO", "LedgerDO"] },
+    { "tag": "spike-s1", "new_sqlite_classes": ["SpikeImagesDO"] },
+    { "tag": "spike-s1-remove", "deleted_classes": ["SpikeImagesDO"] },
+        { "tag": "rebuild-drop", "deleted_classes": ["ControlDO", "LedgerDO"] },
+    { "tag": "rebuild-create", "new_sqlite_classes": ["ControlDO", "LedgerDO", "ErasureDO"] }
+  ],
+
+  // Required Worker secrets, entered privately by Lucas after the closed upload:
+  // ACCESS_CLIENT_SECRET and ALLOWED_EMAIL. Never place their values here.
+  "vars": {
+    "DEPLOYMENT_ID": "compat",
+    "NOVA_STORE_MODE": "sandbox",
+    "NOVA_WRITES_ENABLED": "true",
+    "PUBLIC_ORIGIN": "https://nova-compat.lcaudle-nova.workers.dev",
+    "ACCESS_CLIENT_ID": "REDACTED",
+    "ACCESS_ISSUER": "https://REDACTED.cloudflareaccess.com/cdn-cgi/access/sso/oidc/REDACTED",
+    "ACCESS_AUTHORIZATION_URL": "https://REDACTED.cloudflareaccess.com/cdn-cgi/access/sso/oidc/REDACTED/authorization",
+    "ACCESS_TOKEN_URL": "https://REDACTED.cloudflareaccess.com/cdn-cgi/access/sso/oidc/REDACTED/token",
+    "ACCESS_JWKS_URL": "https://REDACTED.cloudflareaccess.com/cdn-cgi/access/sso/oidc/REDACTED/jwks"
+  }
+}
